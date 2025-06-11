@@ -1,31 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My GitHub Site</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Rod Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 40px;
+      background-color: #f4f4f4;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      font-size: 1.2em;
+      width: 200px;
+      margin-top: 10px;
+    }
+
+    .result {
+      margin-top: 30px;
+      font-size: 1.2em;
+      background-color: #fff;
+      padding: 20px;
+      display: inline-block;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    label {
+      font-size: 1.3em;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Welcome to My GitHub Page!</h1>
-    <p>This is a simple website hosted with GitHub Pages.</p>
-  </header>
 
-  <main>
-    <section>
-      <h2>About Me</h2>
-      <p>Hello! I'm learning how to make websites. This is my first one on GitHub!</p>
-    </section>
-    
-    <section>
-      <h2>Contact</h2>
-      <p>You can reach me at <a href="mailto:your@email.com">your@email.com</a>.</p>
-    </section>
-  </main>
+  <h1>The rod amount</h1>
+  <input type="number" id="rodInput" min="1" oninput="calculate()" placeholder="Enter number of rods" />
 
-  <footer>
-    <p>© 2025 My GitHub Site</p>
-  </footer>
+  <div class="result">
+    <h2>The length of compressor (from the center)</h2>
+    <p id="compressorLength">–</p>
+
+    <h2>The degree you need to put in angle lock (first angle lock should be half of the angle)</h2>
+    <p id="angleLock">–</p>
+  </div>
+
+  <script>
+    function calculate() {
+      const x = parseFloat(document.getElementById('rodInput').value);
+      const compressorElem = document.getElementById('compressorLength');
+      const angleElem = document.getElementById('angleLock');
+
+      if (!x || x <= 0) {
+        compressorElem.textContent = '–';
+        angleElem.textContent = '–';
+        return;
+      }
+
+      const radians = (Math.PI / 180) * (180 / x);
+      const compressorLength = 1 / (2 * Math.sin(radians));
+      const angle = 360 / x;
+
+      compressorElem.textContent = compressorLength.toFixed(4);
+      angleElem.textContent = angle.toFixed(2) + '°';
+    }
+  </script>
+
 </body>
 </html>
