@@ -2,74 +2,146 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Rod Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rod Compressor Calculator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin: 40px;
+      margin: 0;
+      padding: 40px 20px;
       background-color: #f4f4f4;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #333;
     }
 
     input[type="number"] {
       padding: 10px;
       font-size: 1.2em;
-      width: 200px;
-      margin-top: 10px;
+      width: 80%;
+      max-width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
     }
 
     .result {
-      margin-top: 30px;
-      font-size: 1.2em;
-      background-color: #fff;
+      margin-top: 25px;
+      background-color: #f9f9f9;
       padding: 20px;
-      display: inline-block;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      border: 1px solid #eee;
+      text-align: left;
     }
 
-    h1, h2 {
+    h1 {
       color: #333;
+      margin-bottom: 30px;
     }
 
-    label {
-      font-size: 1.3em;
+    h2 {
+      font-size: 1.1em;
+      color: #666;
+      margin: 15px 0 5px 0;
+    }
+
+    p {
+      font-size: 1.4em;
+      font-weight: bold;
+      margin: 0 0 15px 0;
+      color: #222;
+    }
+
+    .note {
+      font-size: 0.9em;
+      color: #666;
+      font-style: italic;
+      font-weight: normal;
+      margin-top: -10px;
+      margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
 
-  <h1>The rod amount</h1>
-  <input type="number" id="rodInput" min="1" oninput="calculate()" placeholder="Enter number of rods" />
+  <div class="container">
+    <h1>Compressor Calculator</h1>
 
-  <div class="result">
-    <h2>The length of compressor (from the center)</h2>
-    <p id="compressorLength">–</p>
+    <div class="input-group">
+      <label for="rodInput1">Number of Rods (Main Layout)</label>
+      <input type="number" id="rodInput1" min="1" oninput="calculate()" placeholder="Enter x1" />
+    </div>
 
-    <h2>The degree you need to put in angle lock (first angle lock should be half of the angle)</h2>
-    <p id="angleLock">–</p>
+    <div class="input-group">
+      <label for="rodInput2">Number of Rods (Optional 2nd Layout)</label>
+      <input type="number" id="rodInput2" min="1" oninput="calculate()" placeholder="Enter x2 (Optional)" />
+    </div>
+
+    <div class="result">
+      <h2>Compressor Radius / Combined Length</h2>
+      <p id="compressorLength">–</p>
+
+      <h2>Angle Lock (Main Layout)</h2>
+      <p id="angleLock">–</p>
+      <p id="halfAngleNote" class="note"></p>
+    </div>
   </div>
 
-  <script>
-    function calculate() {
-      const x = parseFloat(document.getElementById('rodInput').value);
-      const compressorElem = document.getElementById('compressorLength');
-      const angleElem = document.getElementById('angleLock');
+<script>
+  function calculate() {
+    const x1 = parseFloat(document.getElementById('rodInput1').value);
+    const x2 = parseFloat(document.getElementById('rodInput2').value);
 
-      if (!x || x <= 0) {
-        compressorElem.textContent = '–';
-        angleElem.textContent = '–';
-        return;
-      }
+    const compressorElem = document.getElementById('compressorLength');
+    const angleElem = document.getElementById('angleLock');
+    const noteElem = document.getElementById('halfAngleNote');
 
-      const radians = (Math.PI / 180) * (180 / x);
-      const compressorLength = 1 / (2 * Math.sin(radians));
-      const angle = 360 / x;
-
-      compressorElem.textContent = compressorLength.toFixed(4);
-      angleElem.textContent = angle.toFixed(2) + '°';
+    if (!x1 || x1 <= 0) {
+      compressorElem.textContent = '–';
+      angleElem.textContent = '–';
+      noteElem.textContent = '';
+      return;
     }
-  </script>
+
+    const rad1 = (Math.PI / 180) * (180 / x1);
+    const r1 = 1 / (2 * Math.sin(rad1)); 
+
+    const angle1 = 360 / x1;
+    const halfAngle1 = angle1 / 2;
+
+    let finalLength = r1 - 1;
+
+    if (x2 && x2 > 0) {
+      const rad2 = (Math.PI / 180) * (180 / x2);
+      const r2 = 1 / (2 * Math.sin(rad2));
+      
+      finalLength = (r1 + r2); 
+    }
+
+    compressorElem.textContent = finalLength.toFixed(3);
+    angleElem.textContent = angle1.toFixed(2) + '°';
+    noteElem.textContent = `(First angle lock should be ${halfAngle1.toFixed(2)}°)`;
+  }
+</script>
 
 </body>
 </html>
