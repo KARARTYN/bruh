@@ -2,98 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rod Compressor Calculator</title>
+  <title>Gear Visualizer & Calculator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 0;
-      padding: 40px 20px;
+      padding: 30px 20px;
       background-color: #f4f4f4;
+      color: #333;
     }
 
     .container {
-      max-width: 500px;
+      max-width: 600px;
       margin: 0 auto;
       background-color: #fff;
-      padding: 30px;
+      padding: 25px;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .input-group {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     label {
       display: block;
       font-size: 1.1em;
       font-weight: bold;
-      margin-bottom: 8px;
-      color: #333;
+      margin-bottom: 5px;
     }
 
     input[type="number"] {
       padding: 10px;
-      font-size: 1.2em;
-      width: 80%;
-      max-width: 250px;
+      font-size: 1.1em;
+      width: 100%;
+      max-width: 200px;
       border: 1px solid #ccc;
       border-radius: 5px;
       box-sizing: border-box;
     }
 
     .result {
-      margin-top: 25px;
+      margin-top: 20px;
       background-color: #f9f9f9;
-      padding: 20px;
+      padding: 15px;
       border-radius: 8px;
       border: 1px solid #eee;
       text-align: left;
     }
 
-    h1 {
-      color: #333;
-      margin-bottom: 30px;
-    }
-
     h2 {
-      font-size: 1.1em;
+      font-size: 1em;
       color: #666;
-      margin: 15px 0 5px 0;
+      margin: 10px 0 2px 0;
+      text-transform: uppercase;
     }
 
     p {
-      font-size: 1.4em;
+      font-size: 1.3em;
       font-weight: bold;
-      margin: 0 0 15px 0;
-      color: #222;
+      margin: 0 0 10px 0;
     }
 
     .note {
-      font-size: 0.9em;
+      font-size: 0.85em;
       color: #666;
       font-style: italic;
-      font-weight: normal;
-      margin-top: -10px;
-      margin-bottom: 15px;
+      margin-top: -5px;
+    }
+
+    canvas {
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-top: 20px;
+      max-width: 100%;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>Compressor Calculator</h1>
+    <h1>Gear Layout Visualizer</h1>
 
     <div class="input-group">
       <label for="rodInput1">Number of Rods (Main Layout)</label>
-      <input type="number" id="rodInput1" min="1" oninput="calculate()" placeholder="Enter x1" />
+      <input type="number" id="rodInput1" min="1" value="5" oninput="calculateAndDraw()" placeholder="Enter x1" />
     </div>
 
     <div class="input-group">
       <label for="rodInput2">Number of Rods (Optional 2nd Layout)</label>
-      <input type="number" id="rodInput2" min="1" oninput="calculate()" placeholder="Enter x2 (Optional)" />
+      <input type="number" id="rodInput2" min="1" value="7" oninput="calculateAndDraw()" placeholder="Enter x2 (Optional)" />
     </div>
 
     <div class="result">
@@ -104,44 +104,109 @@
       <p id="angleLock">–</p>
       <p id="halfAngleNote" class="note"></p>
     </div>
+
+    <canvas id="gearCanvas" width="400" height="400"></canvas>
   </div>
 
-<script>
-  function calculate() {
-    const x1 = parseFloat(document.getElementById('rodInput1').value);
-    const x2 = parseFloat(document.getElementById('rodInput2').value);
+  <script>
+    function calculateAndDraw() {
+      const x1 = parseFloat(document.getElementById('rodInput1').value);
+      const x2 = parseFloat(document.getElementById('rodInput2').value);
 
-    const compressorElem = document.getElementById('compressorLength');
-    const angleElem = document.getElementById('angleLock');
-    const noteElem = document.getElementById('halfAngleNote');
-
-    if (!x1 || x1 <= 0) {
-      compressorElem.textContent = '–';
-      angleElem.textContent = '–';
-      noteElem.textContent = '';
-      return;
-    }
-
-    const rad1 = (Math.PI / 180) * (180 / x1);
-    const r1 = 1 / (2 * Math.sin(rad1)); 
-
-    const angle1 = 360 / x1;
-    const halfAngle1 = angle1 / 2;
-
-    let finalLength = r1 - 1;
-
-    if (x2 && x2 > 0) {
-      const rad2 = (Math.PI / 180) * (180 / x2);
-      const r2 = 1 / (2 * Math.sin(rad2));
+      const compressorElem = document.getElementById('compressorLength');
+      const angleElem = document.getElementById('angleLock');
+      const noteElem = document.getElementById('halfAngleNote');
       
-      finalLength = (r1 + r2); 
+      const canvas = document.getElementById('gearCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Clear the canvas canvas on every redraw
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!x1 || x1 <= 0) {
+        compressorElem.textContent = '–';
+        angleElem.textContent = '–';
+        noteElem.textContent = '';
+        return;
+      }
+
+      // 1. Math Calculations
+      const rad1 = (Math.PI / 180) * (180 / x1);
+      const r1 = 1 / (2 * Math.sin(rad1)); 
+      
+      const angle1 = 360 / x1;
+      const halfAngle1 = angle1 / 2;
+
+      let finalLength = r1 - 1; 
+
+      if (x2 && x2 > 0) {
+        const rad2 = (Math.PI / 180) * (180 / x2);
+        const r2 = 1 / (2 * Math.sin(rad2));
+        finalLength = (r1 + r2); 
+      }
+
+      // Update UI texts
+      compressorElem.textContent = finalLength.toFixed(4);
+      angleElem.textContent = angle1.toFixed(2) + '°';
+      noteElem.textContent = `(First angle lock should be ${halfAngle1.toFixed(2)}°)`;
+
+      // 2. Rendering / Drawing Engine
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      
+      // Scale dynamic sizing to fit visually into our 400x400 canvas window
+      // Let's assume 1 generic mathematical unit = 100 canvas pixels
+      const scale = 40; 
+
+      const centerBlockRadius = (1.0 / 2) * scale; // Diameter 1 = Radius 0.5
+      const rodRadius = (0.5 / 2) * scale;         // Diameter 0.5 = Radius 0.25
+      const renderRadius = r1 * scale;              // Distance from center to rod centers
+
+      // Draw the main center block (Size 1)
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, centerBlockRadius, 0, 2 * Math.PI);
+      ctx.fillStyle = '#cbd5e1'; // Light steel gray
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#64748b';
+      ctx.stroke();
+
+      // Draw center point indicator
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI);
+      ctx.fillStyle = '#333';
+      ctx.fill();
+
+      // Draw the cylinders / rods (Teeth) around the main gear layout
+      for (let i = 0; i < x1; i++) {
+        // Distribute angles uniformly around 360 degrees
+        const currentAngle = (i * angle1 * Math.PI) / 180;
+        
+        // Compute precise polar coordinate positions
+        const rodX = centerX + renderRadius * Math.cos(currentAngle);
+        const rodY = centerY + renderRadius * Math.sin(currentAngle);
+
+        // Draw individual rod
+        ctx.beginPath();
+        ctx.arc(rodX, rodY, rodRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#3b82f6'; // Clean blue color for teeth
+        ctx.fill();
+        ctx.strokeStyle = '#1d4ed8';
+        ctx.stroke();
+        
+        // Optional: Draw a subtle alignment guideline from the center hub to the rod
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(rodX, rodY);
+        ctx.strokeStyle = 'rgba(100, 116, 139, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
     }
 
-    compressorElem.textContent = finalLength.toFixed(3);
-    angleElem.textContent = angle1.toFixed(2) + '°';
-    noteElem.textContent = `(First angle lock should be ${halfAngle1.toFixed(2)}°)`;
-  }
-</script>
+    // Fire calculation instantly on boot to show defaults
+    calculateAndDraw();
+  </script>
 
 </body>
 </html>
